@@ -96,3 +96,108 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+
+## Database Schema
+
+```mermaid
+erDiagram
+    users ||--o{ orders : "has many"
+    users ||--o{ carts : "has many"
+    users ||--o{ payments : "has many"
+    categories ||--o{ products : "has many"
+    products ||--o{ order_items : "has many"
+    products ||--o{ carts_items : "has many"
+    orders ||--o{ order_items : "has many"
+    orders ||--|| payments : "has one"
+    orders }o--|| carts : "belongs to"
+    carts ||--o{ carts_items : "has many"
+
+    users {
+        string id PK
+        string email UK
+        string password
+        string firstName
+        string lastName
+        enum role
+        string refreshToken
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    categories {
+        string id PK
+        string name
+        string description
+        string slug UK
+        string imageUrl
+        boolean isActive
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    products {
+        string id PK
+        string name
+        string description
+        decimal price
+        int stock
+        string sku UK
+        string imageUrl
+        boolean isActive
+        string categoryId FK
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    orders {
+        string id PK
+        string orderNumber UK
+        enum status
+        decimal totalAmount
+        string userId FK
+        string cartId FK
+        string shippingAddress
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    order_items {
+        string id PK
+        int quantity
+        decimal price
+        string productId FK
+        string orderId FK
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    carts {
+        string id PK
+        string userId FK
+        boolean checkedOut
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    carts_items {
+        string id PK
+        int quantity
+        string productId FK
+        string cartId FK
+        datetime createdAt
+        datetime updatedAt
+    }
+
+    payments {
+        string id PK
+        decimal amount
+        enum status
+        string currency
+        string paymentMethod
+        string transactionId
+        string userId FK
+        string orderId FK
+        datetime createdAt
+        datetime updatedAt
+    }
+```
