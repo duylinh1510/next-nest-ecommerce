@@ -4,11 +4,13 @@ export interface Product {
   id: string;
   name: string;
   description: string;
+  quantity: number;
   price: number;
   stock: number;
   sku: string;
   imageUrl: string;
   category: string;
+  categoryId: string;
 }
 
 export interface ProductQueryParams {
@@ -16,6 +18,7 @@ export interface ProductQueryParams {
   limit?: number;
   search?: string;
   category?: string;
+  categoryId?: string;
 }
 
 export interface PaginationMeta {

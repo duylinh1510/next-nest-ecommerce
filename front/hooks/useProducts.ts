@@ -17,6 +17,7 @@ export function useProducts() {
     totalPages: 1,
   });
 
+  const [product, setProduct] = useState<Product | null>(null);
   const getProducts = useCallback(
     async (params?: ProductQueryParams): Promise<ProductsResponse | null> => {
       setIsLoading(true);
@@ -38,5 +39,30 @@ export function useProducts() {
     [],
   );
 
-  return { isLoading, products, getProducts, error, meta };
+  const getProduct = useCallback(
+    async (id: string): Promise<Product | null> => {
+      if (!id) return null;
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const response = await ProductService.getProductById(id);
+
+        if (response) {
+          setProduct(response);
+          return response;
+        }
+
+        throw new Error("Product not found");
+      } catch (error) {
+        const message = "Failed to load product: " + error;
+        setError(message);
+        return null;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [],
+  );
+  return { isLoading, products, getProducts, error, meta, getProduct, product };
 }

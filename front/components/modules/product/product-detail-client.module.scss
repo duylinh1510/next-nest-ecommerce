@@ -1,0 +1,36 @@
+.loading,
+.error {
+  min-height: 60vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  text-align: center;
+}
+
+.loading {
+  p {
+    font-size: 1.125rem;
+    color: #6b7280;
+  }
+}
+
+.error {
+  h2 {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 1rem 0;
+  }
+
+  p {
+    font-size: 1rem;
+    color: #6b7280;
+    margin: 0;
+  }
+}
