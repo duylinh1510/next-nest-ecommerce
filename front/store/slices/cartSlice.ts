@@ -56,10 +56,79 @@ const cartSlice = createSlice({
       // Tổng tiền: giá sản phẩm × số lượng từng dòng
       state.totalPrice = totals.totalPrice;
     },
+    /**
+     * Giảm số lượng 1 dòng trong giỏ (payload = `product.id` của sản phẩm cần giảm).
+     * - Tìm dòng có cùng `product.id`; không có thì không làm gì.
+     * - Nếu `quantity` > 1: chỉ trừ 1.
+     * - Nếu `quantity` <= 1: xóa hẳn dòng đó khỏi giỏ (coi như bỏ món).
+     * Sau khi cập nhật `items`, tính lại `totalItems` và `totalPrice`.
+     */
+    decrementQuantity: (state, action: PayloadAction<string>) => {
+      const item = state.items.find(
+        (item) => item.product.id === action.payload,
+      );
+
+      if (item) {
+        if (item.quantity <= 1) {
+          // Còn 1 (hoặc lỗi dữ liệu): gỡ dòng, không để quantity = 0
+          state.items = state.items.filter(
+            (item) => item.product.id !== action.payload,
+          );
+        } else {
+          item.quantity -= 1;
+        }
+
+        const totals = calculateTotals(state.items);
+        state.totalItems = totals.totalItems;
+        state.totalPrice = totals.totalPrice;
+      }
+    },
+
+    incrementQuantity: (state, action: PayloadAction<string>) => {
+      const item = state.items.find(
+        (item) => item.product.id === action.payload,
+      );
+
+      if (item) {
+        item.quantity += 1;
+
+        const total = calculateTotals(state.items);
+        state.totalItems = total.totalItems;
+        state.totalPrice = total.totalPrice;
+      }
+    },
+
+    removeFromCart: (state, action: PayloadAction<string>) => {
+      const item = state.items.find(
+        (item) => item.product.id === action.payload,
+      );
+
+      if (item) {
+        state.items = state.items.filter(
+          (item) => item.product.id !== action.payload,
+        );
+
+        const total = calculateTotals(state.items);
+        state.totalItems = total.totalItems;
+        state.totalPrice = total.totalPrice;
+      }
+    },
+
+    clearAllCart: (state) => {
+      state.items = [];
+      state.totalPrice = 0;
+      state.totalItems = 0;
+    },
   },
 });
 
-// Action để dùng bên ngoài: addToCart(product)
-export const { addToCart } = cartSlice.actions;
+// Action để dùng bên ngoài: addToCart(product), decrementQuantity(productId)
+export const {
+  addToCart,
+  decrementQuantity,
+  incrementQuantity,
+  removeFromCart,
+  clearAllCart,
+} = cartSlice.actions;
 // Reducer: import trong `combineReducers` ở `store/index.ts`
 export default cartSlice.reducer;
