@@ -1,7 +1,4 @@
-# Nest E-Commerce API
-
-RESTful API backend cho hệ thống thương mại điện tử, xây dựng bằng **NestJS**, **Prisma ORM**, **PostgreSQL** và tích hợp thanh toán **Stripe**.
-
+# E-Commerce API
 ## Tech Stack
 
 | Layer | Technology |
