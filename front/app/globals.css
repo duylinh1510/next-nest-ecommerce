@@ -3,7 +3,14 @@
   --foreground: #171717;
 
   /* Colors */
+  /* Colors */
   --primary: #000000;
+  --primary-foreground: #ffffff;
+  --secondary: #8bee12;
+  --border: #090808;
+
+  /* errors */
+  --destructive: #c31414;
 }
 
 @media (prefers-color-scheme: dark) {

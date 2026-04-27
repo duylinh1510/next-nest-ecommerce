@@ -22,3 +22,9 @@ export interface CartItem {
   createdAt: string;
   updatedAt: string;
 }
+
+export interface CartResponse {
+  success: boolean;
+  message: string;
+  data?: unknown;
+}

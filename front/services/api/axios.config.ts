@@ -29,14 +29,14 @@ apiClient.interceptors.request.use(
 );
 
 apiClient.interceptors.response.use(
-  //Mọi response OK đi qua không đổi: (reponse) => reponse — trả về nguyên response cho code gọi API.
-  (reponse) => reponse,
+  //Mọi response OK đi qua không đổi: (response) => response — trả về nguyên response cho code gọi API.
+  (response) => response,
   //khi backend trả 401 (access token hết hạn / không hợp lệ), không bắt user gọi lại API bằng tay
   async (error) => {
     //giữ lại cấu hình request vừa thất bại (URL, method, body…).
     const originalRequest = error.config;
     //Chỉ xử lý 401 một lần cho cùng một request
-    if (error.reponse?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest._retry) {
       //lần đầu 401 thì đánh dấu _retry = true để tránh vòng lặp vô hạn (refresh cũng 401 thì không lặp mãi).
       originalRequest._retry = true;
       //Nếu còn refreshToken trong Redux

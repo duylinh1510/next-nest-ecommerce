@@ -37,7 +37,7 @@ const storage =
 const persistConfig = {
   key: "root", // Tên key trong localStorage
   storage,
-  whitelist: [], // Tên slice được ghi xuống ổ (trống = chưa persist slice nào)
+  whitelist: ["cart", "auth"], // Tên slice được ghi xuống ổ
 };
 
 // Gộp reducers: thêm slice ở đây

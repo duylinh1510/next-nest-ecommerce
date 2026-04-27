@@ -19,7 +19,7 @@ export class QueryOrderDto {
   limit?: number = 10;
 
   @IsOptional()
-  @Type(() => Number)
+  @Type(() => String)
   status?: OrderStatus;
 
   @IsOptional()

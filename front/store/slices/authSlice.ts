@@ -28,8 +28,21 @@ const authSlice = createSlice({
       state.user = null;
       state.isAuthenticated = false;
     },
+    setAuth: (
+      state,
+      action: PayloadAction<{
+        accessToken: string;
+        refreshToken: string;
+        user: User;
+      }>,
+    ) => {
+      state.accessToken = action.payload.accessToken;
+      state.refreshToken = action.payload.refreshToken;
+      state.user = action.payload.user;
+      state.isAuthenticated = true;
+    },
   },
 });
 
-export const { setAccessToken, clearAuth } = authSlice.actions;
+export const { setAccessToken, clearAuth, setAuth } = authSlice.actions;
 export default authSlice.reducer;
