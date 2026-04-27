@@ -1,6 +1,4 @@
-# Nest E-Commerce Frontend
-
-Giao diện người dùng cho hệ thống thương mại điện tử, xây dựng bằng **Next.js 16**, **React 19**, **Redux Toolkit** và tích hợp thanh toán **Stripe**.
+# E-Commerce Frontend
 
 ## Tech Stack
 
