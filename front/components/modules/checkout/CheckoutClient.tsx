@@ -16,11 +16,11 @@ import { useRouter } from "next/navigation";
 import { OrderItem } from "@/types/orders.types";
 import useOrder from "@/hooks/useOrder";
 import { useAuth } from "@/hooks/useAuth";
+import { useSearchParams } from "next/navigation";
 
 type Step = 1 | 2 | 3;
 
 export default function CheckoutClient() {
-  const [currentStep, setCurrentStep] = useState<Step>(1);
   const [selectedPayment, setSelectedPayment] = useState<string>("");
   const [stripeError, setStripeError] = useState<string | null>(null);
   const [isCreatingOrder, setIsCreatingOrder] = useState(false);
@@ -29,6 +29,15 @@ export default function CheckoutClient() {
   const [orderId, setOrderId] = useState<string>("");
   const { isAuthenticated } = useAuth();
   const [shippingAddress, setShippingAddress] = useState("");
+
+  const searchParams = useSearchParams();
+  const existingOrderId = searchParams.get("orderId");
+  const existingAmount = Number(searchParams.get("amount") ?? "0");
+  const [currentStep, setCurrentStep] = useState<Step>(
+    existingOrderId ? 2 : 1, // nếu có orderId → bỏ qua Step 1
+  );
+
+  const displayAmount = existingOrderId ? existingAmount : totalPrice;
 
   const handlePaymentMethodSelect = (method: string) => {
     setSelectedPayment(method);
@@ -45,72 +54,86 @@ export default function CheckoutClient() {
   }, [isAuthenticated, router]);
 
   useEffect(() => {
-    if (items.length == 0 && !orderId) {
+    if (items.length === 0 && !orderId && !existingOrderId) {
       router.push("/cart");
     }
-  }, [orderId, items, router]);
+  }, [orderId, items, router, existingOrderId]);
 
   useEffect(() => {
-    const createOrderAutomatically = async () => {
-      if (selectedPayment && !orderId && !isCreatingOrder && !clientSecret) {
-        setIsCreatingOrder(true);
-        setStripeError(null);
+    const initPayment = async () => {
+      if (!selectedPayment || isCreatingOrder || clientSecret) return;
 
-        try {
-          const cartItems: OrderItem[] = items.map((item) => ({
-            productId: item.productId,
-            quantity: item.quantity,
-            price: item.price,
-          }));
+      setIsCreatingOrder(true);
+      setStripeError(null);
 
-          const order = await createOrder({
-            items: cartItems,
-            shippingAddress,
-          });
-
-          if (!order) {
-            throw new Error("Failed to create order");
-          }
-
-          setOrderId(order.id);
-          sessionStorage.setItem("pendingOrderId", order.id);
-          await clearAllCart();
+      try {
+        // Nếu resume order cũ
+        if (existingOrderId) {
+          setOrderId(existingOrderId);
+          sessionStorage.setItem("pendingOrderId", existingOrderId);
 
           if (selectedPayment === "stripe") {
-            const paymentCreated = await createPaymentIntent({
-              orderId: order.id,
-              amount: totalPrice,
-              description: "Order payment for ecommerce purchase",
+            const created = await createPaymentIntent({
+              orderId: existingOrderId,
+              amount: existingAmount,
               currency: "usd",
+              description: "Order payment",
             });
-
-            if (!paymentCreated) {
-              throw new Error("Failed to create payment intent");
-            }
+            if (!created) throw new Error("Failed to create payment intent");
           }
-        } catch (error) {
-          const errorMessage =
-            error instanceof Error
-              ? error.message
-              : "Failed to create payment intent";
-          setStripeError(errorMessage);
-          console.log("Order creation error:", error);
-        } finally {
-          setIsCreatingOrder(false);
+          return;
         }
+
+        // Tạo order mới (flow cũ)
+        const cartItems: OrderItem[] = items.map((item) => ({
+          productId: item.productId,
+          quantity: item.quantity,
+          price: item.price,
+        }));
+
+        const order = await createOrder({
+          items: cartItems,
+          shippingAddress,
+        });
+
+        if (!order) throw new Error("Failed to create order");
+
+        setOrderId(order.id);
+        sessionStorage.setItem("pendingOrderId", order.id);
+        await clearAllCart();
+
+        if (selectedPayment === "stripe") {
+          const created = await createPaymentIntent({
+            orderId: order.id,
+            amount: totalPrice,
+            currency: "usd",
+            description: "Order payment",
+          });
+          if (!created) throw new Error("Failed to create payment intent");
+        }
+      } catch (error) {
+        setStripeError(
+          error instanceof Error ? error.message : "Payment error",
+        );
+      } finally {
+        setIsCreatingOrder(false);
       }
     };
-    createOrderAutomatically();
+
+    void initPayment();
   }, [
     selectedPayment,
     orderId,
     isCreatingOrder,
     clientSecret,
+    existingOrderId,
+    existingAmount,
     items,
+    shippingAddress,
     createOrder,
     createPaymentIntent,
     totalPrice,
-    shippingAddress,
+    clearAllCart,
   ]);
 
   const handlePaymentSuccess = async (paymentIntentId: string) => {
@@ -244,12 +267,12 @@ export default function CheckoutClient() {
                   {clientSecret && (
                     <StripePaymentProvider
                       clientSecret={clientSecret}
-                      amount={totalPrice}
+                      amount={displayAmount}
                       onSuccess={handlePaymentSuccess}
                       onError={handlePaymentError}
                     >
                       <StripePaymentForm
-                        amount={totalPrice}
+                        amount={displayAmount}
                         onSuccess={handlePaymentSuccess}
                         onError={handlePaymentError}
                       />
@@ -264,7 +287,7 @@ export default function CheckoutClient() {
                 <h3>Order summary</h3>
                 <div className={styles.summaryRow}>
                   <span>Items ({items.length})</span>
-                  <span>${totalPrice.toFixed(2)}</span>
+                  <span>${displayAmount.toFixed(2)}</span>
                 </div>
 
                 <div className={styles.summaryRow}>
@@ -275,7 +298,7 @@ export default function CheckoutClient() {
                 <hr className={styles.divider} />
                 <div className={styles.summaryTotal}>
                   <span>Total</span>
-                  <span>${totalPrice.toFixed(2)}</span>
+                  <span>${displayAmount.toFixed(2)}</span>
                 </div>
               </div>
             </div>

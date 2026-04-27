@@ -7,6 +7,11 @@ import useOrder from "@/hooks/useOrder";
 import { useAuth } from "@/hooks/useAuth";
 import styles from "./oders.module.scss";
 import { Package } from "lucide-react";
+import { usePayment } from "@/hooks/usePayment";
+import {
+  StripePaymentProvider,
+  StripePaymentForm,
+} from "@/components/modules/checkout/stripe-payment-form";
 
 const STATUS_COLOR: Record<string, string> = {
   PENDING: "#f59e0b",
@@ -30,6 +35,12 @@ export default function OrderDetailClient({ id }: { id: string }) {
   } = useOrder();
 
   const [showConfirm, setShowConfirm] = useState(false);
+
+  const { clientSecret, createPaymentIntent, confirmPayment } = usePayment();
+  const [payLoading, setPayLoading] = useState(false);
+  const [payError, setPayError] = useState<string | null>(null);
+  const [paySuccess, setPaySuccess] = useState(false);
+  const [showPayForm, setShowPayForm] = useState(false);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -91,6 +102,37 @@ export default function OrderDetailClient({ id }: { id: string }) {
     }
   };
 
+  const handlePayNow = async () => {
+    setPayLoading(true);
+    setPayError(null);
+    const created = await createPaymentIntent({
+      orderId: id,
+      amount: detailOrder.total,
+      currency: "usd",
+      description: "Order payment",
+    });
+    if (created) {
+      setShowPayForm(true);
+    } else {
+      setPayError("Failed to initialize payment. Please try again.");
+    }
+    setPayLoading(false);
+  };
+
+  const handlePaymentSuccess = async (paymentIntentId: string) => {
+    const confirmed = await confirmPayment({ orderId: id, paymentIntentId });
+    if (confirmed) {
+      setPaySuccess(true);
+      setShowPayForm(false);
+      void getOrderById(id); // reload để thấy status mới
+    } else {
+      setPayError("Payment confirmed but failed to update order.");
+    }
+  };
+  const handlePaymentError = (error: string) => {
+    setPayError(error);
+  };
+
   return (
     <section className={styles.section}>
       <div className={styles.container}>
@@ -135,6 +177,27 @@ export default function OrderDetailClient({ id }: { id: string }) {
             </span>
           </div>
         </div>
+
+        {detailOrder.status === "PENDING" && (
+          <button
+            onClick={() =>
+              router.push(`/checkout?orderId=${id}&amount=${detailOrder.total}`)
+            }
+            style={{
+              padding: "0.75rem 2rem",
+              background: "#000",
+              color: "#fff",
+              border: "none",
+              borderRadius: "0.375rem",
+              cursor: "pointer",
+              fontWeight: 600,
+              fontSize: "1rem",
+              marginBottom: "1.5rem",
+            }}
+          >
+            Pay Now
+          </button>
+        )}
 
         {detailOrder.status === "PENDING" && (
           <div style={{ marginBottom: "1.5rem" }}>

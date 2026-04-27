@@ -45,10 +45,36 @@ export class PaymentsService {
       where: { orderId },
     });
 
-    if (existingPayment && existingPayment.status === PaymentStatus.COMPLETED) {
-      throw new BadRequestException('Payment already completed for this order');
+    if (existingPayment) {
+      if (existingPayment.status === PaymentStatus.COMPLETED) {
+        throw new BadRequestException(
+          'Payment already completed for this order',
+        );
+      }
+
+      // Đã có PENDING payment → tạo PaymentIntent mới trên Stripe, reuse record cũ trong DB
+      const paymentIntent = await this.stripe.paymentIntents.create({
+        amount: Math.round(amount * 100),
+        currency,
+        metadata: { orderId, userId },
+      });
+
+      const updated = await this.prisma.payment.update({
+        where: { id: existingPayment.id },
+        data: { transactionId: paymentIntent.id },
+      });
+
+      return {
+        success: true,
+        data: {
+          clientSecret: paymentIntent.client_secret!,
+          paymentId: updated.id,
+        },
+        message: 'Payment intent created successfully!',
+      };
     }
 
+    // Chưa có payment nào → tạo mới hoàn toàn
     const paymentIntent = await this.stripe.paymentIntents.create({
       amount: Math.round(amount * 100),
       currency,
