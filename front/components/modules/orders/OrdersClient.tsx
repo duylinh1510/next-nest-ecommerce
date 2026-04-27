@@ -114,26 +114,36 @@ export default function OrdersClient() {
         {!listLoading && orders.length > 0 && (
           <ul className={styles.list} aria-label="Order list">
             {orders.map((o) => (
-              <li key={o.id} className={styles.card}>
-                <div className={styles.cardHeader}>
-                  <span className={styles.orderId}>Order #{o.id}</span>
-                  <span className={styles.status}>{o.status}</span>
-                </div>
-                <div className={styles.meta}>
-                  <span>
-                    {new Date(o.createdAt).toLocaleString(undefined, {
-                      dateStyle: "medium",
-                      timeStyle: "short",
-                    })}
-                  </span>
-                  <span className={styles.total}>
-                    ${Number(o.total).toFixed(2)}
-                  </span>
-                  <span>
-                    {o.items?.length ?? 0} line item
-                    {o.items?.length === 1 ? "" : "s"}
-                  </span>
-                </div>
+              <li key={o.id}>
+                <Link
+                  href={`/user/orders/${o.id}`}
+                  className={styles.card}
+                  style={{
+                    display: "block",
+                    textDecoration: "none",
+                    color: "inherit",
+                  }}
+                >
+                  <div className={styles.cardHeader}>
+                    <span className={styles.orderId}>Order #{o.id}</span>
+                    <span className={styles.status}>{o.status}</span>
+                  </div>
+                  <div className={styles.meta}>
+                    <span>
+                      {new Date(o.createdAt).toLocaleString(undefined, {
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                      })}
+                    </span>
+                    <span className={styles.total}>
+                      ${Number(o.total).toFixed(2)}
+                    </span>
+                    <span>
+                      {o.items?.length ?? 0} line item
+                      {o.items?.length === 1 ? "" : "s"}
+                    </span>
+                  </div>
+                </Link>
               </li>
             ))}
           </ul>

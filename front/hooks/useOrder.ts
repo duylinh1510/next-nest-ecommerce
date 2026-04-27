@@ -22,6 +22,10 @@ export default function useOrder() {
   const [listLoading, setListLoading] = useState(false);
   const [listError, setListError] = useState<string | null>(null);
 
+  const [detailOrder, setDetailOrder] = useState<UserOrder | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
+  const [detailError, setDetailError] = useState<string | null>(null);
+
   // lấy danh sách sản phẩm trong giỏ từ Redux và gán vào biến guessCart
   const guessCart = useSelector((state: IRootState) => state.cart.items);
 
@@ -89,6 +93,36 @@ export default function useOrder() {
     [],
   );
 
+  const getOrderById = useCallback(async (id: string): Promise<void> => {
+    setDetailLoading(true);
+    setDetailError(null);
+    try {
+      const res = await OrderService.getOrderById(id);
+      setDetailOrder(res.data);
+    } catch (e) {
+      setDetailError(e instanceof Error ? e.message : "Failed to load order");
+      setDetailOrder(null);
+    } finally {
+      setDetailLoading(false);
+    }
+  }, []);
+
+  const [cancelLoading, setCancelLoading] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
+  const cancelOrder = useCallback(async (id: string): Promise<boolean> => {
+    setCancelLoading(true);
+    setCancelError(null);
+    try {
+      await OrderService.cancelOrder(id);
+      return true;
+    } catch (e) {
+      setCancelError(e instanceof Error ? e.message : "Failed to cancel order");
+      return false;
+    } finally {
+      setCancelLoading(false);
+    }
+  }, []);
+
   return {
     order,
     error,
@@ -99,5 +133,12 @@ export default function useOrder() {
     listLoading,
     listError,
     getAllOrders,
+    detailOrder,
+    detailLoading,
+    detailError,
+    getOrderById,
+    cancelOrder,
+    cancelLoading,
+    cancelError,
   };
 }

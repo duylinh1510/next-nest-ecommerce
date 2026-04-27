@@ -50,3 +50,9 @@ export interface PaginatedOrdersResponse {
   page: number;
   limit: number;
 }
+
+export interface SingleOrderApiResponse {
+  success: boolean;
+  message: string;
+  data: UserOrder;
+}

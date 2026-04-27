@@ -9,8 +9,8 @@ export default function CheckoutSteps({
   currentStep: number;
 }) {
   const steps = [
-    { number: 1, title: "Payment" },
-    { number: 2, title: "Processing" },
+    { number: 1, title: "Shipping" },
+    { number: 2, title: "Payment" },
     { number: 3, title: "Complete" },
   ];
   return (

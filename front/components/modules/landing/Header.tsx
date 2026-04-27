@@ -80,7 +80,8 @@ export default function Header() {
                   {/* User info */}
                   <div className={styles.dropdownHeader}>
                     <p className={styles.dropdownName}>
-                      {user?.name ?? "My Account"}
+                      {`${user?.firstName ?? ""} ${user?.lastName ?? ""}`.trim() ||
+                        "My Account"}
                     </p>
                     <p className={styles.dropdownEmail}>{user?.email}</p>
                   </div>

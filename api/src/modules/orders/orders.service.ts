@@ -276,7 +276,7 @@ export class OrdersService {
     id: string,
     userId?: string,
   ): Promise<OrderApiResponseDto<OrderResponseDto>> {
-    const where: Prisma.OrderWhereInput = {};
+    const where: Prisma.OrderWhereInput = { id };
     if (userId) where.userId = userId;
 
     const order = await this.prisma.order.findFirst({

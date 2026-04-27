@@ -2,6 +2,7 @@ import {
   CreateOrderRequest,
   OrderResponse,
   PaginatedOrdersResponse,
+  SingleOrderApiResponse,
 } from "@/types/orders.types";
 import { apiClient } from "./axios.config";
 
@@ -18,6 +19,18 @@ export const OrderService = {
     const response = await apiClient.get<PaginatedOrdersResponse>("/orders", {
       params, // gửi ?page=&limit= lên (đồng bộ với Swagger)
     });
+    return response.data;
+  },
+  getOrderById: async (id: string): Promise<SingleOrderApiResponse> => {
+    const response = await apiClient.get<SingleOrderApiResponse>(
+      `/orders/${id}`,
+    );
+    return response.data;
+  },
+  cancelOrder: async (id: string): Promise<SingleOrderApiResponse> => {
+    const response = await apiClient.delete<SingleOrderApiResponse>(
+      `/orders/${id}`,
+    );
     return response.data;
   },
 };

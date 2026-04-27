@@ -28,6 +28,7 @@ export default function CheckoutClient() {
   const { clientSecret, confirmPayment, createPaymentIntent } = usePayment();
   const [orderId, setOrderId] = useState<string>("");
   const { isAuthenticated } = useAuth();
+  const [shippingAddress, setShippingAddress] = useState("");
 
   const handlePaymentMethodSelect = (method: string) => {
     setSelectedPayment(method);
@@ -64,8 +65,7 @@ export default function CheckoutClient() {
 
           const order = await createOrder({
             items: cartItems,
-            shippingAddress:
-              "97/20, 41 Street, Khanh Hoi Ward, Ho Chi Minh City",
+            shippingAddress,
           });
 
           if (!order) {
@@ -73,6 +73,8 @@ export default function CheckoutClient() {
           }
 
           setOrderId(order.id);
+          sessionStorage.setItem("pendingOrderId", order.id);
+          await clearAllCart();
 
           if (selectedPayment === "stripe") {
             const paymentCreated = await createPaymentIntent({
@@ -108,6 +110,7 @@ export default function CheckoutClient() {
     createOrder,
     createPaymentIntent,
     totalPrice,
+    shippingAddress,
   ]);
 
   const handlePaymentSuccess = async (paymentIntentId: string) => {
@@ -121,8 +124,6 @@ export default function CheckoutClient() {
       if (!confirmed) {
         throw new Error("Failed to confirm payment");
       }
-
-      await clearAllCart();
     } catch (error) {
       const errorMessage =
         error instanceof Error
@@ -137,6 +138,13 @@ export default function CheckoutClient() {
     setStripeError(error);
   };
 
+  const handleShippingSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (shippingAddress.trim()) {
+      setCurrentStep(2);
+    }
+  };
+
   return (
     <section className={styles.section}>
       {/* container */}
@@ -145,6 +153,69 @@ export default function CheckoutClient() {
         <CheckoutSteps currentStep={currentStep} />
         <div className={styles.content}>
           {currentStep === 1 && (
+            <div className={styles.stepContent}>
+              <h2>Shipping Address</h2>
+              <form
+                onSubmit={handleShippingSubmit}
+                className={styles.shippingForm}
+              >
+                <div className={styles.field}>
+                  <label htmlFor="fullName">Full Name</label>
+                  <input
+                    type="text"
+                    id="fullName"
+                    placeholder="John Doe"
+                    required
+                    disabled={false}
+                  />
+                </div>
+                <div className={styles.field}>
+                  <label htmlFor="address">Street Address</label>
+                  <input
+                    type="text"
+                    id="address"
+                    placeholder="123 Main St, Ward 1, District 1"
+                    value={shippingAddress}
+                    onChange={(e) => setShippingAddress(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className={styles.fieldRow}>
+                  <div className={styles.field}>
+                    <label htmlFor="city">City</label>
+                    <input
+                      type="text"
+                      id="city"
+                      placeholder="Ho Chi Minh City"
+                      required
+                    />
+                  </div>
+                  <div className={styles.field}>
+                    <label htmlFor="country">Country</label>
+                    <input
+                      type="text"
+                      id="country"
+                      placeholder="Vietnam"
+                      required
+                    />
+                  </div>
+                </div>
+                <div className={styles.formActions}>
+                  <button
+                    type="button"
+                    className={styles.backBtn}
+                    onClick={() => router.push("/cart")}
+                  >
+                    ← Back to cart
+                  </button>
+                  <button type="submit" className={styles.continueButton}>
+                    Continue to Payment →
+                  </button>
+                </div>
+              </form>
+            </div>
+          )}
+          {currentStep === 2 && (
             <div className={styles.stepContent}>
               <h2>Select Payment Method</h2>
               <div className={styles.paymentMethods}>

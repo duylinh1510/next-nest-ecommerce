@@ -20,7 +20,12 @@ export const authService = {
     try {
       const response = await apiClient.post<{ accessToken: string }>(
         "/auth/refresh",
-        { refreshToken },
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${refreshToken}`, // ← gửi trong header
+          },
+        },
       );
 
       const { accessToken } = response.data;

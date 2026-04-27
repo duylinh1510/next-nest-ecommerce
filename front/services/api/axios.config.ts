@@ -18,7 +18,7 @@ apiClient.interceptors.request.use(
     const state = store.getState();
     const token = state.auth.accessToken;
 
-    if (token) {
+    if (token && !config.headers.Authorization) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
@@ -36,7 +36,11 @@ apiClient.interceptors.response.use(
     //giữ lại cấu hình request vừa thất bại (URL, method, body…).
     const originalRequest = error.config;
     //Chỉ xử lý 401 một lần cho cùng một request
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !originalRequest.url?.includes("/auth/refresh")
+    ) {
       //lần đầu 401 thì đánh dấu _retry = true để tránh vòng lặp vô hạn (refresh cũng 401 thì không lặp mãi).
       originalRequest._retry = true;
       //Nếu còn refreshToken trong Redux
@@ -63,5 +67,6 @@ apiClient.interceptors.response.use(
         window.location.href = "/auth/login";
       }
     }
+    return Promise.reject(error);
   },
 );
