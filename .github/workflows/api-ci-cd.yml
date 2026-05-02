@@ -54,13 +54,14 @@ jobs:
       - name: Configure AWS OIDC
         uses: aws-actions/configure-aws-credentials@v2
         with:
-          role-to-assume: ${{secrets.AWS_OIDC_ROLE_ARN}}
+          role-to-assume: ${{ secrets.AWS_OIDC_ROLE_ARN }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      # Login to ECR
+      # docker login cần registry host (vd: 123.dkr.ecr.region.amazonaws.com), không phải cả đường dẫn repo
       - name: Login to ECR
         run: |
-          aws ecr get-login-password --region "${{ secrets.AWS_REGION }}" | docker login --username AWS --password-stdin "${{ secrets.ECR_REPOSITORY }}"
+          ECR_REGISTRY=$(echo "${{ secrets.ECR_REPOSITORY }}" | cut -d'/' -f1)
+          aws ecr get-login-password --region "${{ secrets.AWS_REGION }}" | docker login --username AWS --password-stdin "$ECR_REGISTRY"
 
       # Build Docker Image
       - name: Build Docker Image
@@ -74,49 +75,51 @@ jobs:
       - name: Push Docker image to ECR
         run: docker push ${{ secrets.ECR_REPOSITORY }}:latest
 
-      # Deploy to EC2
+      # Deploy to EC2 (EC2 cần IAM cho ECR pull + secretsmanager; cài awscli, docker, jq)
       - name: Deploy to EC2
-        uses: appleboy/ssh-action@v0.1.7
+        uses: appleboy/ssh-action@v1.2.5
         with:
           host: ${{ secrets.EC2_HOST }}
-          username: $${{ secrets.EC2_USER }}
+          username: ${{ secrets.EC2_USER }}
           key: ${{ secrets.EC2_KEY }}
-          script: docker pull ${{ secrets.ECR_REPOSITORY }}:latest
-
+          script: |
+            set -euo pipefail
+            ECR_REGISTRY=$(echo "${{ secrets.ECR_REPOSITORY }}" | cut -d'/' -f1)
+            aws ecr get-login-password --region "${{ secrets.AWS_REGION }}" | docker login --username AWS --password-stdin "$ECR_REGISTRY"
+            docker pull ${{ secrets.ECR_REPOSITORY }}:latest
             docker stop nest-next-ecommerce || true
             docker rm nest-next-ecommerce || true
-
-            SECRETS_JSON=$(aws secretmanager get-secret-value \
-            --secret-id nestjs-prod-secrets \
-            --query SecretString \
-            --output text)
-
-            export DATABASE_USER=$(echo $SECRETS_JSON | jq -r .DATABASE_USER)
-            export DATABASE_PASSWORD=$(echo $SECRETS_JSON | jq -r .DATABASE_PASSWORD)
-            export DATABASE_NAME=$(echo $SECRETS_JSON | jq -r .DATABASE_NAME)
-            export DATABASE_PORT=$(echo $SECRETS_JSON | jq -r .DATABASE_PORT)
-            export DATABASE_URL=$(echo $SECRETS_JSON | jq -r .DATABASE_URL)
-            export PORT=$(echo $SECRETS_JSON | jq -r .PORT)
-            export ALLOWED_ORIGINS=$(echo $SECRETS_JSON | jq -r .ALLOWED_ORIGINS)
-            export JWT_SECRET=$(echo $SECRETS_JSON | jq -r .JWT_SECRET)
-            export JWT_REFRESH_SECRET=$(echo $SECRETS_JSON | jq -r .JWT_REFRESH_SECRET)
-            export JWT_EXPIRES_IN=$(echo $SECRETS_JSON | jq -r .JWT_EXPIRES_IN)
-            export JWT_REFRESH_EXPIRES_IN=$(echo $SECRETS_JSON | jq -r .JWT_REFRESH_EXPIRES_IN)
-            export NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=$(echo $SECRETS_JSON | jq -r .NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
-            export STRIPE_SECRET_KEY=$(echo $SECRETS_JSON | jq -r .STRIPE_SECRET_KEY)
-
+            SECRETS_JSON=$(aws secretsmanager get-secret-value \
+              --secret-id nestjs-prod-secrets \
+              --query SecretString \
+              --output text)
+            export DATABASE_USER=$(echo "$SECRETS_JSON" | jq -r .DATABASE_USER)
+            export DATABASE_PASSWORD=$(echo "$SECRETS_JSON" | jq -r .DATABASE_PASSWORD)
+            export DATABASE_NAME=$(echo "$SECRETS_JSON" | jq -r .DATABASE_NAME)
+            export DATABASE_PORT=$(echo "$SECRETS_JSON" | jq -r .DATABASE_PORT)
+            export DATABASE_URL=$(echo "$SECRETS_JSON" | jq -r .DATABASE_URL)
+            export PORT=$(echo "$SECRETS_JSON" | jq -r .PORT)
+            export ALLOWED_ORIGINS=$(echo "$SECRETS_JSON" | jq -r .ALLOWED_ORIGINS)
+            export JWT_SECRET=$(echo "$SECRETS_JSON" | jq -r .JWT_SECRET)
+            export JWT_REFRESH_SECRET=$(echo "$SECRETS_JSON" | jq -r .JWT_REFRESH_SECRET)
+            export JWT_EXPIRES_IN=$(echo "$SECRETS_JSON" | jq -r .JWT_EXPIRES_IN)
+            export JWT_REFRESH_EXPIRES_IN=$(echo "$SECRETS_JSON" | jq -r .JWT_REFRESH_EXPIRES_IN)
+            export NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=$(echo "$SECRETS_JSON" | jq -r .NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
+            export STRIPE_SECRET_KEY=$(echo "$SECRETS_JSON" | jq -r .STRIPE_SECRET_KEY)
             docker run -d \
-            -p $PORT:$PORT \
-            --name nest-next-ecommerce \
-            -e DATABASE_USER \
-            -e DATABASE_PASSWORD \
-            -e DATABASE_NAME \
-            -e DATABASE_PORT \
-            -e PORT \
-            -e ALLOWED_ORIGINS \
-            -e JWT_SECRET \
-            -e JWT_REFRESH_SECRET \
-            -e JWT_REFRESH_EXPIRES_IN \
-            -e NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY \
-            -e STRIPE_SECRET_KEY \
-            ${{ secrets.ECR_REPOSITORY }}:latest
+              -p "${PORT}:3000" \
+              --name nest-next-ecommerce \
+              -e DATABASE_USER \
+              -e DATABASE_PASSWORD \
+              -e DATABASE_NAME \
+              -e DATABASE_PORT \
+              -e DATABASE_URL \
+              -e PORT \
+              -e ALLOWED_ORIGINS \
+              -e JWT_SECRET \
+              -e JWT_REFRESH_SECRET \
+              -e JWT_EXPIRES_IN \
+              -e JWT_REFRESH_EXPIRES_IN \
+              -e NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY \
+              -e STRIPE_SECRET_KEY \
+              ${{ secrets.ECR_REPOSITORY }}:latest
