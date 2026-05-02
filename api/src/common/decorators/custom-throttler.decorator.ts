@@ -10,7 +10,7 @@ export const StrictThrottle = () =>
   });
 
 // Moderate rate for orders
-export const ModerateThrottle = () => 
+export const ModerateThrottle = () =>
   Throttle({
     default: {
       ttl: 1000,

@@ -1,17 +1,14 @@
 import {
   BadRequestException,
   ConflictException,
-  Get,
   Injectable,
   NotFoundException,
-  Param,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { CategoryResponseDto } from './dto/category-response.dto';
 import { Category, Prisma } from '@prisma/client';
 import { QueryCategoryDto } from './dto/query-category.dto';
-import { ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 
 @Injectable()

@@ -1,10 +1,8 @@
 import {
   ConflictException,
-  ForbiddenException,
   Injectable,
   InternalServerErrorException,
   UnauthorizedException,
-  UseGuards,
 } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service';
 import { RegisterDto } from './dto/register.dto';
@@ -13,8 +11,6 @@ import * as bcrypt from 'bcrypt';
 import { randomBytes } from 'crypto';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { RefreshTokenGuard } from './guards/refresh-token.guard';
-import { GetUser } from '../../common/decorators/get-user.decorator';
 import { LoginDto } from './dto/login.dto';
 
 @Injectable()

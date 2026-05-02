@@ -105,15 +105,15 @@ export class UsersService {
     }
 
     const isPasswordValid = await bcrypt.compare(
-      user.password,
       currentPassword,
+      user.password,
     );
 
     if (!isPasswordValid) {
       throw new UnauthorizedException('Current password is incorrect');
     }
 
-    const isSamePassword = await bcrypt(user.password, currentPassword);
+    const isSamePassword = await bcrypt.compare(newPassword, user.password);
     if (isSamePassword) {
       throw new NotFoundException(
         'New password must be different from the current password',

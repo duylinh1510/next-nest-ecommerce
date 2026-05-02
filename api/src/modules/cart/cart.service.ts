@@ -3,11 +3,27 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { Category, Prisma, Product } from '@prisma/client';
 import { PrismaService } from '../../prisma/prisma.service';
 import { CartResponseDto } from './dto/cart-response.dto';
 import { CartItemResponseDto } from './dto/cart-item-response.dto';
 import { AddToCartDto } from './dto/art-to.cart.dto';
 import { UpdateCartItemDto } from './dto/update-cart-item.dto';
+import { ProductResponseDto } from '../products/dto/product-response.dto';
+
+const cartWithItemsInclude = {
+  cartItems: {
+    include: {
+      product: {
+        include: { category: true },
+      },
+    },
+  },
+} satisfies Prisma.CartInclude;
+
+type CartWithItems = Prisma.CartGetPayload<{
+  include: typeof cartWithItemsInclude;
+}>;
 
 @Injectable()
 export class CartService {
@@ -179,48 +195,41 @@ export class CartService {
   /**
    * Get or create active (non-checked-out) cart
    */
-  async getOrCreateActiveCart(userId: string) {
+  async getOrCreateActiveCart(userId: string): Promise<CartResponseDto> {
     let cart = await this.prisma.cart.findFirst({
       where: { userId, checkedOut: false },
-      include: {
-        cartItems: {
-          include: {
-            product: true,
-          },
-        },
-      },
+      include: cartWithItemsInclude,
     });
     if (!cart) {
       cart = await this.prisma.cart.create({
         data: { userId },
-        include: {
-          cartItems: {
-            include: {
-              product: true,
-            },
-          },
-        },
+        include: cartWithItemsInclude,
       });
     }
 
     return this.formatCart(cart);
   }
 
-  private formatCart(cart: any): CartResponseDto {
-    const cartItems: CartItemResponseDto[] = cart.cartItems.map(
-      (item: any) => ({
-        id: item.id,
-        cartId: item.cartId,
-        productId: item.productId,
-        quantity: item.quantity,
-        product: {
-          ...item.product,
-          price: Number(item.product.price),
-        },
-        createdAt: item.createdAt,
-        updatedAt: item.updatedAt,
-      }),
-    );
+  private formatCartProduct(
+    product: Product & { category: Category },
+  ): ProductResponseDto {
+    return {
+      ...product,
+      price: Number(product.price),
+      category: product.category.name,
+    };
+  }
+
+  private formatCart(cart: CartWithItems): CartResponseDto {
+    const cartItems: CartItemResponseDto[] = cart.cartItems.map((item) => ({
+      id: item.id,
+      cartId: item.cartId,
+      productId: item.productId,
+      quantity: item.quantity,
+      product: this.formatCartProduct(item.product),
+      createdAt: item.createdAt,
+      updatedAt: item.updatedAt,
+    }));
 
     const totalPrice = cartItems.reduce(
       (sum, item) => sum + item.quantity * item.product.price,

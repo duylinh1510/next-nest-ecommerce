@@ -7,7 +7,7 @@ import {
 import { PrismaService } from '../../prisma/prisma.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { ProductResponseDto } from './dto/product-response.dto';
-import { Category, Prisma, Product, Role } from '@prisma/client';
+import { Category, Prisma, Product } from '@prisma/client';
 import { QueryProductDto } from './dto/query-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 
@@ -143,9 +143,30 @@ export class ProductsService {
       }
     }
 
-    const updateData: any = { ...updateProductDto };
+    const updateData: Prisma.ProductUpdateInput = {};
+    if (updateProductDto.name !== undefined) {
+      updateData.name = updateProductDto.name;
+    }
+    if (updateProductDto.description !== undefined) {
+      updateData.description = updateProductDto.description;
+    }
     if (updateProductDto.price !== undefined) {
       updateData.price = new Prisma.Decimal(updateProductDto.price);
+    }
+    if (updateProductDto.stock !== undefined) {
+      updateData.stock = updateProductDto.stock;
+    }
+    if (updateProductDto.sku !== undefined) {
+      updateData.sku = updateProductDto.sku;
+    }
+    if (updateProductDto.imageUrl !== undefined) {
+      updateData.imageUrl = updateProductDto.imageUrl;
+    }
+    if (updateProductDto.isActive !== undefined) {
+      updateData.isActive = updateProductDto.isActive;
+    }
+    if (updateProductDto.categoryId !== undefined) {
+      updateData.category = { connect: { id: updateProductDto.categoryId } };
     }
 
     const updatedProduct = await this.prisma.product.update({
