@@ -68,7 +68,7 @@ jobs:
 
       # Tag Docker Image for ECR
       - name: Tag Docker Image to ECR
-        run: docker tag ne nest-next-ecommerce:latest ${{ secrets. ECR_REPOSITORY }}:latest
+        run: docker tag nest-next-ecommerce:latest ${{ secrets.ECR_REPOSITORY }}:latest
 
       # Push Docker image
       - name: Push Docker image to ECR
