@@ -42,7 +42,7 @@ jobs:
 
   deploy:
     needs: ci #CI must complete successfully before deploy starts
-    runs-on: ubutun-latest
+    runs-on: ubuntun-latest
     permissions:
       id-token: write
       contents: read
