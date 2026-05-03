@@ -61,7 +61,7 @@ async function bootstrap() {
       'JWT-refresh',
     )
     .addServer(`http://localhost:${process.env.PORT}`, 'Development server')
-    .addServer(`https://ecommercenestapi.duckdns.org}`, 'Production server')
+    .addServer(`https://ecommercenestapi.duckdns.org`, 'Production server')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document, {
