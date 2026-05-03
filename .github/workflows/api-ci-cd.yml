@@ -123,3 +123,11 @@ jobs:
               -e NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY \
               -e STRIPE_SECRET_KEY \
               ${{ secrets.ECR_REPOSITORY }}:latest
+      - name: Cleanup old Docker images
+        uses: appleboy/ssh-action@v1.2.5
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            docker image prune -a -f
