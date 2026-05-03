@@ -23,7 +23,10 @@ async function bootstrap() {
 
   //Enable CORS
   app.enableCors({
-    origin: process.env.ALLOWED_ORIGINS?.split(',') ?? 'http://localhost:3000',
+    origin: process.env.ALLOWED_ORIGINS?.split(',') ?? [
+      'http://localhost:3001',
+      'https://next-nest-ecommerce-lovat.vercel.app', // ← thêm domain Vercel
+    ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
@@ -57,7 +60,8 @@ async function bootstrap() {
       },
       'JWT-refresh',
     )
-    .addServer('http://localhost:3001', 'Development server')
+    .addServer(`http://localhost:${process.env.PORT}`, 'Development server')
+    .addServer(`https://ecommercenestapi.duckdns.org}`, 'Production server')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document, {
