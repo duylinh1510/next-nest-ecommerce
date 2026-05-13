@@ -142,3 +142,36 @@
     transform: rotate(360deg);
   }
 }
+
+.googleSubmitButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 16px;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background-color: #ffffff;
+  color: #1a1a1a;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.googleSubmitButton:hover:not(:disabled) {
+  background-color: #f8fafc;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+}
+
+.googleSubmitButton:active:not(:disabled) {
+  background-color: #f1f5f9;
+}
+
+.googleSubmitButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

@@ -165,7 +165,7 @@ cd front && npm run dev
 | --- | --- |
 | Frontend | [http://localhost:3000](http://localhost:3000) |
 | Backend API | [http://localhost:3001/api/v1](http://localhost:3001/api/v1) *(if `PORT=3001`)* |
-| Swagger | [http://localhost:3001/api/docs](http://localhost:3001/api/docs) |
+| Swagger | [http://localhost:3001/api/v1/docs](http://localhost:3001/api/v1/docs) |
 
 ---
 
@@ -183,6 +183,10 @@ Example templates live in:
 | `DATABASE_URL` | PostgreSQL connection string (Neon or local) |
 | `PORT` | HTTP port inside the container/host binding |
 | `ALLOWED_ORIGINS` | Comma-separated browser origins for CORS (e.g. `http://localhost:3000`, production Vercel URL) |
+| `FRONTEND_URL` | Frontend origin used after Google OAuth succeeds, e.g. `http://localhost:3000` or production Vercel URL |
+| `GOOGLE_CLIENT_ID` | Google OAuth client ID |
+| `GOOGLE_CLIENT_SECRET` | Google OAuth client secret |
+| `GOOGLE_CALLBACK_URL` | Google OAuth callback URL, e.g. `http://localhost:3001/api/v1/auth/google/callback` |
 | `JWT_SECRET` | Secret for signing access tokens |
 | `JWT_REFRESH_SECRET` | Secret for signing refresh tokens |
 | `JWT_EXPIRES_IN` | Access token TTL hint (see Nest JWT module config) |
@@ -230,6 +234,7 @@ Production checklist highlights:
 
 - CORS `ALLOWED_ORIGINS` must include your **Vercel** URL(s).  
 - Frontend `NEXT_PUBLIC_API_URL` must match your **HTTPS** API URL (avoid mixed content).  
+- Google OAuth authorized redirect URI must match `GOOGLE_CALLBACK_URL` exactly.
 - Rotate JWT and Stripe keys independently of image builds via Secrets Manager / Vercel env.
 
 ---

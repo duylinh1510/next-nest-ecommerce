@@ -12,10 +12,21 @@ import { randomBytes } from 'crypto';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { LoginDto } from './dto/login.dto';
+import { CreateGoogleUserDto } from './dto/create-google-user.dto';
+import { Role } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
   private readonly SALT_ROUNDS = 12;
+
+  private readonly userSelect = {
+    id: true,
+    email: true,
+    firstName: true,
+    lastName: true,
+    role: true,
+  } as const;
+
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
@@ -163,5 +174,38 @@ export class AuthService {
       where: { id: userId },
       data: { refreshToken: hashedRefreshToken },
     });
+  }
+
+  async validateGoogleUser(googleUser: CreateGoogleUserDto) {
+    const { email, firstName, lastName } = googleUser;
+    const randomPassword = randomBytes(32).toString('hex');
+    const hashedPassword = await bcrypt.hash(randomPassword, this.SALT_ROUNDS);
+
+    return this.prisma.user.upsert({
+      where: { email },
+      update: {
+        firstName: firstName ?? undefined,
+        lastName: lastName ?? undefined,
+      },
+      create: {
+        email,
+        password: hashedPassword,
+        firstName,
+        lastName,
+      },
+      select: this.userSelect,
+    });
+  }
+
+  async finalizeGoogleLogin(user: {
+    id: string;
+    email: string;
+    firstName: string | null;
+    lastName: string | null;
+    role: Role;
+  }): Promise<AuthResponseDto> {
+    const tokens = await this.generateTokens(user.id, user.email);
+    await this.updateRefreshToken(user.id, tokens.refreshToken);
+    return { ...tokens, user };
   }
 }

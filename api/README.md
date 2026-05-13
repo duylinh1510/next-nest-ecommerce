@@ -106,6 +106,10 @@ DATABASE_URL="postgresql://user:password@localhost:5432/ecommerce"
 JWT_SECRET="your-jwt-secret"
 JWT_REFRESH_SECRET="your-jwt-refresh-secret"
 STRIPE_SECRET_KEY="sk_test_..."
+FRONTEND_URL="http://localhost:3000"
+GOOGLE_CLIENT_ID="your-google-client-id"
+GOOGLE_CLIENT_SECRET="your-google-client-secret"
+GOOGLE_CALLBACK_URL="http://localhost:3001/api/v1/auth/google/callback"
 ```
 
 ### Installation
@@ -135,7 +139,7 @@ npm run start:prod
 
 ### Swagger Docs
 
-After starting the server, visit: `http://localhost:3001/api/docs`
+After starting the server, visit: `http://localhost:3001/api/v1/docs`
 
 ## Database Schema
 

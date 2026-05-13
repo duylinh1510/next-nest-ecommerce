@@ -1,9 +1,12 @@
 import {
   Body,
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Post,
+  Req,
+  Res,
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
@@ -14,6 +17,9 @@ import { GetUser } from '../../common/decorators/get-user.decorator';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { LoginDto } from './dto/login.dto';
 import { ApiBearerAuth, ApiOperation, ApiResponse } from '@nestjs/swagger';
+import { Public } from '../../common/decorators/public.decorator';
+import { GoogleAuthGuard } from './guards/google-auth/google-auth.guard';
+import type { Request, Response } from 'express';
 
 @Controller('auth')
 export class AuthController {
@@ -116,5 +122,28 @@ export class AuthController {
   })
   async login(@Body() loginDto: LoginDto): Promise<AuthResponseDto> {
     return this.authService.login(loginDto);
+  }
+
+  @Public()
+  @UseGuards(GoogleAuthGuard)
+  @Get('google/login')
+  googleLogin() {}
+
+  @Public()
+  @UseGuards(GoogleAuthGuard)
+  @Get('google/callback')
+  async googleCallback(
+    @Req() req: Request & { user: AuthResponseDto['user'] },
+    @Res() res: Response,
+  ): Promise<void> {
+    const response = await this.authService.finalizeGoogleLogin(req.user);
+    const front = process.env.FRONTEND_URL ?? 'http://localhost:3000';
+    const params = new URLSearchParams({
+      accessToken: response.accessToken,
+      refreshToken: response.refreshToken,
+      // User: JSON có thể dài; vẫn ổn với JWT ngắn + object nhỏ
+      user: JSON.stringify(response.user),
+    });
+    res.redirect(`${front}/auth/login?${params.toString()}`);
   }
 }

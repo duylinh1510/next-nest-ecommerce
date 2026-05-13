@@ -3,9 +3,11 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
-import { ConfigService } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtStrategy } from '../strategies/jwt.strategy';
 import { RefreshTokenStrategy } from '../strategies/refresh-token.strategy';
+import googleOauthConfig from './config/google-oauth.config';
+import { GoogleStrategy } from '../strategies/google.strategy';
 
 @Module({
   imports: [
@@ -20,8 +22,9 @@ import { RefreshTokenStrategy } from '../strategies/refresh-token.strategy';
         },
       }),
     }),
+    ConfigModule.forFeature(googleOauthConfig),
   ],
-  providers: [AuthService, JwtStrategy, RefreshTokenStrategy],
+  providers: [AuthService, JwtStrategy, RefreshTokenStrategy, GoogleStrategy],
   controllers: [AuthController],
 })
 export class AuthModule {}

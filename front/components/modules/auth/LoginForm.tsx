@@ -25,6 +25,11 @@ export default function LoginForm() {
   const [email, setEmail] = useState("user1@example.com");
   const [password, setPassword] = useState("User123");
 
+  const apiBase = process.env.NEXT_PUBLIC_API_URL ?? "";
+  const loginWithGoogle = () => {
+    window.location.href = `${apiBase}/auth/google/login`;
+  };
+
   return (
     <section className={styles.section}>
       {/* container */}
@@ -78,6 +83,20 @@ export default function LoginForm() {
               ) : (
                 "Sign in"
               )}
+            </button>
+            <button
+              type="button"
+              className={styles.googleSubmitButton} // hoặc class riêng
+              onClick={loginWithGoogle}
+              disabled={isLoading}
+            >
+              <img
+                src="https://www.svgrepo.com/show/475656/google-color.svg"
+                alt="Google"
+                width={18}
+                height={18}
+              />
+              Continue with Google
             </button>
             <p style={{ textAlign: "center", marginTop: "1rem" }}>
               Don&apos;t have an account?{" "}

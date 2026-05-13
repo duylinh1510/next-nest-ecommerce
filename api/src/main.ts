@@ -7,7 +7,8 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   //Project description
-  app.setGlobalPrefix('api/v1');
+  const globalPrefix = 'api/v1';
+  app.setGlobalPrefix(globalPrefix);
 
   //Set Global validation
   app.useGlobalPipes(
@@ -61,11 +62,18 @@ async function bootstrap() {
       },
       'JWT-refresh',
     )
-    .addServer(`http://localhost:${process.env.PORT}`, 'Development server')
-    .addServer(`https://ecommercenestapi.duckdns.org`, 'Production server')
+    .addServer(
+      `http://localhost:${process.env.PORT ?? 3001}/${globalPrefix}`,
+      'Development server',
+    )
+    .addServer(
+      `https://ecommercenestapi.duckdns.org/${globalPrefix}`,
+      'Production server',
+    )
     .build();
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/docs', app, document, {
+  SwaggerModule.setup('docs', app, document, {
+    useGlobalPrefix: true,
     swaggerOptions: {
       persistAuthorization: true,
       tagsSorter: 'alpha',

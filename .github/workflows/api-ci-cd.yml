@@ -100,6 +100,10 @@ jobs:
             export DATABASE_URL=$(echo "$SECRETS_JSON" | jq -r .DATABASE_URL)
             export PORT=$(echo "$SECRETS_JSON" | jq -r .PORT)
             export ALLOWED_ORIGINS=$(echo "$SECRETS_JSON" | jq -r .ALLOWED_ORIGINS)
+            export FRONTEND_URL=$(echo "$SECRETS_JSON" | jq -r .FRONTEND_URL)
+            export GOOGLE_CLIENT_ID=$(echo "$SECRETS_JSON" | jq -r .GOOGLE_CLIENT_ID)
+            export GOOGLE_CLIENT_SECRET=$(echo "$SECRETS_JSON" | jq -r .GOOGLE_CLIENT_SECRET)
+            export GOOGLE_CALLBACK_URL=$(echo "$SECRETS_JSON" | jq -r .GOOGLE_CALLBACK_URL)
             export JWT_SECRET=$(echo "$SECRETS_JSON" | jq -r .JWT_SECRET)
             export JWT_REFRESH_SECRET=$(echo "$SECRETS_JSON" | jq -r .JWT_REFRESH_SECRET)
             export JWT_EXPIRES_IN=$(echo "$SECRETS_JSON" | jq -r .JWT_EXPIRES_IN)
@@ -116,6 +120,10 @@ jobs:
               -e DATABASE_URL \
               -e PORT \
               -e ALLOWED_ORIGINS \
+              -e FRONTEND_URL \
+              -e GOOGLE_CLIENT_ID \
+              -e GOOGLE_CLIENT_SECRET \
+              -e GOOGLE_CALLBACK_URL \
               -e JWT_SECRET \
               -e JWT_REFRESH_SECRET \
               -e JWT_EXPIRES_IN \
